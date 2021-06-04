@@ -1,0 +1,134 @@
+{% extends 'app/layouts/app.html' %}
+{% load static %}
+{% block content %}
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            font-family: 'Luckiest Guy', cursive;
+            background-image: url("{% static 'app/images/background.jpg' %}");
+            background-size: cover;
+            display: flex;
+            justify-content: center;
+            height: 100vh;
+        }
+
+        .home-wrapper {
+            height: fit-content;
+            overflow: hidden;
+            margin-top: 80px;
+        }
+
+        .info {
+            text-align: center;
+            width: 360px;
+        }
+
+        .info .crown {
+            height: 100px;
+            width: 100px;
+            {#position: absolute;#}
+            {#top: 60px;#}
+            margin-top: -100px;
+        }
+
+        .title {
+            font-size: 45px;
+            color: #FF9800;
+            position: relative;
+            width: fit-content;
+            margin: auto;
+            background-image: url("{% static 'app/images/title-background.gif' %}");
+            text-shadow: 2px 2px 2px #305cfa, 3px 3px 3px #ef961a;
+        }
+
+        .second-line {
+            letter-spacing: 7px;
+            margin-top: 22px;
+        }
+
+        .option-wrapper {
+            text-align: center;
+            margin-top: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        .menu {
+            margin-top: 15px;
+            min-height: 50px;
+        }
+
+        .menu a, .sub-menu a {
+            padding: 17px 20px;
+            background-color: #ffefea;
+            box-shadow: -1px -2px 5px 0px #ef961aa6;
+            text-decoration: none;
+            border-radius: 9px;
+            transition: all 0.2s;
+            cursor: pointer;
+            font-size: 22px;
+            letter-spacing: 3px;
+
+        }
+
+        .menu a:hover {
+
+            box-shadow: 0px 0px 5px 0px #ef961aa6;
+
+            transition: all 0.2s;
+        }
+
+
+        .menu .sub-menu {
+        {#visibility: hidden;#} display: flex;
+            flex-direction: column;
+            padding: 5px 20px;
+        }
+
+        .menu .sub-menu a {
+            font-size: 14px;
+            margin: 10px;
+            color: #ef961a;
+        }
+
+        .menu:hover .sub-menu {
+            visibility: visible;
+        }
+    </style>
+
+    <div class="home-wrapper home">
+        <div class="info">
+            <div class="title">
+                <div class="first-line" id="first-line"> BAAGCHAAL KO</div>
+                <img class="crown" src="{% static 'app/images/crown.png' %}" alt="Baag Chaal Ko Baadhshah"/>
+
+                <div class="second-line"> BAADSHAHA</div>
+            </div>
+            {#        <img src="{% static 'app/images/title-background.gif' %}" alt="Baag Chaal Ko Baadhshah"/>#}
+        </div>
+        <div class="option-wrapper">
+            <div class="menu">
+                <a href="{% url 'multiplayer_offline' %}">Multiplayer Offline</a>
+            </div>
+
+            <div class="menu">
+                <a>Multiplayer OnLine</a>
+                <div class="sub-menu menu">
+                    {#                <a>Random Opponent</a>#}
+                    <a href="{% url 'create_online_game' %}">Challenge Your Friend</a>
+                    <a href="{% url 'join_online_game' %}">Join Game</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="{% static 'app/circleType.min.js' %}"></script>
+    <script>
+        const circleType = new CircleType(document.getElementById('first-line'));
+        circleType.radius(180).dir(1);
+    </script>
+{% endblock %}

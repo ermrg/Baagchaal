@@ -1,0 +1,424 @@
+{% extends 'app/layouts/app.html' %}
+{% load static %}
+{% block content %}
+    <script src="{% static 'app/availablePositions.js' %}"></script>
+    <div class="score"></div>
+    <div class="navigation">
+        <a href="#" onclick="window.history.back()"> <i class="fas fa-arrow-left"></i> </a>
+        <a href="/"><i class="fas fa-home"></i></a>
+    </div>
+    <div class="board-wrapper">
+        <div class="board goatTurn">
+            <div class="box box1">
+                <div class="p p1"></div>
+                <div class="p p2"></div>
+                <div class="p p3"></div>
+                <div class="p p4"></div>
+            </div>
+            <div class="box box2">
+                <div class="p p1"></div>
+                <div class="p p2"></div>
+                <div class="p p3"></div>
+                <div class="p p4"></div>
+            </div>
+            <div class="box box3">
+                <div class="p p1"></div>
+                <div class="p p2"></div>
+                <div class="p p3"></div>
+                <div class="p p4"></div>
+            </div>
+            <div class="box box4">
+                <div class="p p1"></div>
+                <div class="p p2"></div>
+                <div class="p p3"></div>
+                <div class="p p4"></div>
+            </div>
+            <div class="box box5">
+                <div class="p p1"></div>
+                <div class="p p2"></div>
+                <div class="p p3"></div>
+                <div class="p p4"></div>
+            </div>
+            <div class="box box6">
+                <div class="p p1"></div>
+                <div class="p p2"></div>
+                <div class="p p3"></div>
+                <div class="p p4"></div>
+            </div>
+            <div class="box box7">
+                <div class="p p1"></div>
+                <div class="p p2"></div>
+                <div class="p p3"></div>
+                <div class="p p4"></div>
+            </div>
+            <div class="box box8">
+                <div class="p p1"></div>
+                <div class="p p2"></div>
+                <div class="p p3"></div>
+                <div class="p p4"></div>
+            </div>
+            <div class="box box9">
+                <div class="p p1"></div>
+                <div class="p p2"></div>
+                <div class="p p3"></div>
+                <div class="p p4"></div>
+            </div>
+            <div class="box box10">
+                <div class="p p1"></div>
+                <div class="p p2"></div>
+                <div class="p p3"></div>
+                <div class="p p4"></div>
+            </div>
+            <div class="box box11">
+                <div class="p p1"></div>
+                <div class="p p2"></div>
+                <div class="p p3"></div>
+                <div class="p p4"></div>
+            </div>
+            <div class="box box12">
+                <div class="p p1"></div>
+                <div class="p p2"></div>
+                <div class="p p3"></div>
+                <div class="p p4"></div>
+            </div>
+            <div class="box box13">
+                <div class="p p1"></div>
+                <div class="p p2"></div>
+                <div class="p p3"></div>
+                <div class="p p4"></div>
+            </div>
+            <div class="box box14">
+                <div class="p p1"></div>
+                <div class="p p2"></div>
+                <div class="p p3"></div>
+                <div class="p p4"></div>
+            </div>
+            <div class="box box15">
+                <div class="p p1"></div>
+                <div class="p p2"></div>
+                <div class="p p3"></div>
+                <div class="p p4"></div>
+            </div>
+            <div class="box box16">
+                <div class="p p1"></div>
+                <div class="p p2"></div>
+                <div class="p p3"></div>
+                <div class="p p4"></div>
+            </div>
+        </div>
+    </div>
+
+    </body>
+    <script>
+        let user_id = '{{ user_id }}'
+        let currentUserRole = ''
+        let game_code = '{{ game.code }}'
+        let creator_id = '{{ game.creator_id }}'
+        let opponent_id = '{{ game.opponent_id }}'
+        let opponent_role = '{{ game.opponent_role }}'
+        let creator_role = '{{ game.creator_role }}'
+        if (user_id === creator_id) {
+            currentUserRole = creator_role
+        } else {
+            currentUserRole = opponent_role
+        }
+
+        let socket = new WebSocket('ws://{{ RUNNING_IP }}/ws/play/' + game_code)
+        socket.onmessage = function (e) {
+            let data = JSON.parse(e.data)
+            data = data['payload']
+            if (data['operation_type'] === 'movement') {
+                console.log(data)
+
+                if (data['selected']) {
+                    if (!$(data['selected']).find('.' + data['turn']).hasClass('selected')) {
+                        $(data['selected']).find('.' + data['turn']).addClass('selected')
+                    }
+                }
+                if (data['turn'] === 'tiger') {
+                    placeTiger(data['position'])
+                } else {
+                    placeGoat(data['position'])
+                }
+                {#if(turn !== data['turn']){#}
+                switchTurn()
+                {# }#}
+            } else if (data['operation_type'] === 'complete') {
+                playWinnerVictory(data['winner'])
+            }
+        }
+    </script>
+    <script>
+        let turn = 'goat'
+        let goatCount = 20
+        let tigerCount = 4
+        let eatenScore = 0
+        let maxNoOfGoatEatenToFinishGame = 5
+        let LocalAvailablePositions = availablePositions.movePositon
+        let LocalFeedPositions = availablePositions.feedPosition
+        let globalSelectedTiger = ''
+        let globalSelectedGoat = ''
+        {#$(document).ready(function () {#}
+        {#    let ps = $(document).find('.p')#}
+        {#    ps.map(function () {#}
+        {#        let pClass = ($(this).attr('class'))#}
+        {#        let bClass = ($(this).closest('.box').attr('class'))#}
+        {#        $(this).html(bClass.match(/\d+/) + '|' + pClass.match(/\d+/))#}
+        {#    })#}
+        {# })#}
+        $(document).ready(function () {
+            placeTiger('.box1 .p1')
+            placeTiger('.box4 .p2')
+            placeTiger('.box13 .p4')
+            placeTiger('.box16 .p3')
+        })
+
+        function placeTiger(positionClass) {
+            let selectedTiger = $(document).find('.tiger.selected')
+
+            if (selectedTiger.length) {
+                let selectedTigerClass = $(selectedTiger).closest('.p').attr('class')
+                let selectedTigerBoxClass = $(selectedTiger).closest('.box').attr('class')
+                selectedTigerClass = '.' + selectedTigerBoxClass.split(' ')[1] + ' .' + selectedTigerClass.split(' ')[1]
+                let availabilityCheck = checkAvailableTigerPosition(selectedTigerClass, positionClass)
+                if (availabilityCheck) {
+                    let ifAlreadyGoatExit = $(positionClass).find('.goat')
+                    let ifAlreadyTigerExit = $(positionClass).find('.tiger')
+                    if ($(ifAlreadyGoatExit).length + $(ifAlreadyTigerExit).length === 0) {
+                        let value = $(document).find('.tiger.selected').attr('data-num')
+                        $(document).find('.tiger.selected').remove()
+                        let t = `<div class="tiger tiger` + value + `"><img src="{% static 'app/images/tiger.png' %}" /></div>`
+                        $(positionClass).append(t)
+                        return true
+                    }
+                } else {
+                    {#console.log('Invalid Move 3')#}
+                }
+            } else {
+                {# For initial $ tiger#}
+                if (tigerCount > 0) {
+                    let t = `<div class="tiger tiger` + tigerCount + ` data-num="` + tigerCount + `"><img src="{% static 'app/images/tiger.png' %}" /></div>`
+                    $(positionClass).append(t)
+                    tigerCount--
+                    return true
+                }
+            }
+            return false
+        }
+
+        function placeGoat(positionClass) {
+            let selectedGoat = $(document).find('.goat.selected')
+
+            let ifAlreadyGoatExit = $(positionClass).find('.goat')
+            let ifAlreadyTigerExit = $(positionClass).find('.tiger')
+            if ($(ifAlreadyGoatExit).length + $(ifAlreadyTigerExit).length === 0) {
+                if (selectedGoat.length === 0) {
+                    if (goatCount > 0) {
+                        let goatClass = 'goat goat' + goatCount
+                        let t = `<div class="${goatClass}" data-num="` + goatCount + `"><img src="{% static 'app/images/goat.png' %}"/></div>`
+                        $(positionClass).append(t)
+                        goatCount--
+                        return true
+                    }
+                } else {
+                    let selectedGoatClass = $(selectedGoat).closest('.p').attr('class')
+                    let selectedGoatBoxClass = $(selectedGoat).closest('.box').attr('class')
+                    selectedGoatClass = '.' + selectedGoatBoxClass.split(' ')[1] + ' .' + selectedGoatClass.split(' ')[1]
+                    let availabilityCheck = checkAvailableGoatPosition(selectedGoatClass, positionClass)
+                    if (availabilityCheck) {
+                        let value = $(document).find('.goat.selected').attr('data-num')
+                        $(document).find('.goat.selected').remove()
+                        let t = `<div class="goat goat` + value + `"><img src="{% static 'app/images/goat.png' %}"/> </div>`
+                        $(positionClass).append(t)
+                        return true
+                    } else {
+                        {#console.log('Invalid Goat Move 1')#}
+                    }
+                }
+            } else {
+                {#console.log('Invalid Goat Move 2')#}
+            }
+            return false
+        }
+
+        function checkAvailableGoatPosition(position, target) {
+            let validPositions = LocalAvailablePositions[position]
+            let isValid = validPositions.indexOf(target)
+            return isValid >= 0
+        }
+
+        function checkAvailableTigerPosition(position, target) {
+            let validPositions = LocalAvailablePositions[position]
+            let isValid = validPositions.indexOf(target)
+            if (isValid === -1) {
+                let feedingPositions = LocalFeedPositions[position]
+                let isFeeding = false
+                let eatenGoat = ''
+                feedingPositions.map(function (fp) {
+                    if (fp.destination === target) {
+                        let chekDestination = $(fp.destination).html()
+                        let goatExist = $(fp.food).find('.goat')
+                        if (goatExist.length && chekDestination === '') {
+                            eatenGoat = fp.food
+                            isFeeding = true
+                            return true
+                        } else {
+                            {#console.log("Invalid Move 1")#}
+                            return false
+                        }
+                    }
+                })
+                if (isFeeding) {
+                    handleGoatEaten(eatenGoat)
+                    return true
+                } else {
+                    {#console.log("Invalid Move 2")#}
+                    return false
+                }
+            } else {
+                return true
+            }
+        }
+
+        function handleGoatEaten(eatenClass) {
+            $(eatenClass).find('.goat').remove()
+            eatenScore++
+            {#console.log(eatenClass, "This Goat Eaten")#}
+            $('.score').html(eatenScore)
+            if (eatenScore >= maxNoOfGoatEatenToFinishGame) {
+                setTimeout(function () {
+                    handleGameComplete('tiger')
+                }, 1000)
+            }
+        }
+
+        function handleGameComplete(winner) {
+            if (winner.toUpperCase() === currentUserRole) {
+                let data = {
+                    'operation_type': 'complete',
+                    'winner': winner,
+                }
+                socket.send(JSON.stringify({data}))
+            }
+
+        }
+
+        function playWinnerVictory(winner) {
+            alert(winner.toUpperCase() + ' Won!')
+        }
+
+        function switchTurn() {
+            if (turn === 'tiger') {
+                turn = 'goat'
+                $('.board').removeClass('tigerTurn').addClass('goatTurn')
+                $('.tiger').removeClass('selected')
+            } else {
+                turn = 'tiger'
+                $('.board').removeClass('goatTurn').addClass('tigerTurn')
+                $('.goat').removeClass('selected')
+            }
+        }
+
+        function checkIfTigerCornered() {
+            let tigers = $(document).find('.tiger')
+            $(tigers).removeClass('selected')
+            let availablePosition = 0
+            tigers.map(function () {
+
+                let className = $(this).closest('.p').attr('class')
+                let boxClass = $(this).closest('.box').attr('class')
+                let position = '.' + boxClass.split(' ')[1] + ' .' + className.split(' ')[1]
+                let validPositions = LocalAvailablePositions[position]
+                let feedingPositions = LocalFeedPositions[position]
+                validPositions.map(function (p) {
+                    let hasFilled = $(p).html()
+                    if (hasFilled === '') {
+                        availablePosition++
+                    }
+                })
+                feedingPositions.map(function (p, key) {
+                    let hasFilled = $(p.destination).html()
+                    if (hasFilled.trim() === '') {
+                        let ifGoatExist = $(p.food).find('.goat')
+                        if (ifGoatExist.length) {
+                            availablePosition++
+                        }
+                    }
+                })
+            })
+            return availablePosition
+        }
+
+        $(document).on('click', '.p', function () {
+            let box = $(this).closest('.box').first()
+            let boxClass = $(box).attr('class')
+            let goatClass = $(this).attr('class')
+            let position = '';
+            boxClass = boxClass.split(' ')
+            goatClass = goatClass.split(' ')
+            position = '.' + boxClass[1] + ' .' + goatClass[1]
+            if (turn.toUpperCase() === currentUserRole) {
+                if (turn === 'goat') {
+                    let success = placeGoat(position)
+                    if (success) {
+                        sendMovement(position, 'goat', globalSelectedGoat)
+                        {#switchTurn()#}
+                        let availableTigerPosition = checkIfTigerCornered()
+                        if (availableTigerPosition === 0) {
+                            setTimeout(function () {
+                                handleGameComplete('goat')
+                            }, 1000)
+                        }
+                    }
+
+                } else if (turn === 'tiger') {
+                    let success = placeTiger(position)
+                    if (success) {
+                        sendMovement(position, 'tiger', globalSelectedTiger)
+                        {#switchTurn()#}
+                    }
+                }
+            }
+
+        })
+
+        function sendMovement(position, turn, selected) {
+            let data = {
+                'operation_type': 'movement',
+                'user_id': user_id,
+                'code': game_code,
+                'position': position,
+                'selected': selected,
+                'turn': turn
+            }
+            socket.send(JSON.stringify({data}))
+        }
+
+        $(document).on('click', '.goat', function () {
+            if (goatCount === 0 && turn === 'goat') {
+                $('.goat').removeClass('selected')
+
+                $(this).addClass('selected')
+                let selectedTiger = $(document).find('.goat.selected')
+                let selectedTigerClass = $(selectedTiger).closest('.p').attr('class')
+                let selectedTigerBoxClass = $(selectedTiger).closest('.box').attr('class')
+                globalSelectedGoat = '.' + selectedTigerBoxClass.split(' ')[1] + ' .' + selectedTigerClass.split(' ')[1]
+            }
+        })
+
+        $(document).on('click', '.tiger', function () {
+            if (turn === 'tiger') {
+                $('.tiger').removeClass('selected')
+                $(this).addClass('selected')
+                let selectedTiger = $(document).find('.tiger.selected')
+                let selectedTigerClass = $(selectedTiger).closest('.p').attr('class')
+                let selectedTigerBoxClass = $(selectedTiger).closest('.box').attr('class')
+                globalSelectedTiger = '.' + selectedTigerBoxClass.split(' ')[1] + ' .' + selectedTigerClass.split(' ')[1]
+
+            }
+        })
+
+
+    </script>
+
+{% endblock %}
